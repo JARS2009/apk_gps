@@ -1,0 +1,130 @@
+# ============================================================
+# docker-compose.production.yml
+# Despliegue productivo en VPS - Agro-Rastreo
+# VPS IP: 5.189.153.106
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────
+  # Aplicación Laravel
+  # ──────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    image: agrorastreo/app:latest
+    container_name: agrorastreo_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "${APP_URL}"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+    volumes:
+      - app_storage:/var/www/html/storage
+      - app_bootstrap_cache:/var/www/html/bootstrap/cache
+    networks:
+      - agrorastreo
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────
+  # MySQL 8.4
+  # ──────────────────────────────────────────
+  mysql:
+    image: mysql:8.4
+    container_name: agrorastreo_mysql
+    restart: unless-stopped
+    ports:
+      - "${FORWARD_DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    networks:
+      - agrorastreo
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  # ──────────────────────────────────────────
+  # Redis
+  # ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: agrorastreo_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrorastreo
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
+  # ──────────────────────────────────────────
+  # phpMyAdmin — acceso en :5050
+  # ──────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: agrorastreo_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${FORWARD_PHPMYADMIN_PORT:-5050}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      UPLOAD_LIMIT: 128M
+      MAX_EXECUTION_TIME: 300
+      MEMORY_LIMIT: 512M
+    networks:
+      - agrorastreo
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+# ──────────────────────────────────────────
+# Redes y volúmenes persistentes
+# ──────────────────────────────────────────
+networks:
+  agrorastreo:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_storage:
+    driver: local
+  app_bootstrap_cache:
+    driver: local

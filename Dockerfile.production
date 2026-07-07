@@ -1,0 +1,109 @@
+# ============================================================
+# Dockerfile.production
+# Imagen productiva de Laravel + PHP 8.3 + Node/pnpm para
+# compilar assets y generar la APK en el VPS
+# ============================================================
+
+FROM php:8.3-apache AS base
+
+LABEL maintainer="Agro-Rastreo <noreply@agrorastreo.com>"
+
+# ─── Variables de entorno del sistema ─────────────────────
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=America/Bogota \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_NO_INTERACTION=1 \
+    NODE_VERSION=22
+
+# ─── Dependencias del sistema ─────────────────────────────
+RUN apt-get update && apt-get install -y \
+        curl \
+        git \
+        unzip \
+        zip \
+        libzip-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libwebp-dev \
+        libfreetype6-dev \
+        libicu-dev \
+        libmcrypt-dev \
+        libxml2-dev \
+        libonig-dev \
+        libssl-dev \
+        default-mysql-client \
+        redis-tools \
+        supervisor \
+        cron \
+        nano \
+        procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# ─── Extensiones PHP ──────────────────────────────────────
+RUN docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+        --with-webp \
+    && docker-php-ext-install \
+        gd \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        zip \
+        bcmath \
+        xml \
+        intl \
+        opcache \
+        pcntl \
+        exif \
+    && pecl install redis \
+    && docker-php-ext-enable redis
+
+# ─── Configuración PHP para producción ────────────────────
+COPY docker/php/php-production.ini /usr/local/etc/php/conf.d/app.ini
+
+# ─── Configuración Apache ─────────────────────────────────
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite headers expires deflate
+
+# ─── Composer ─────────────────────────────────────────────
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+
+# ─── Node.js + pnpm ───────────────────────────────────────
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g pnpm \
+    && rm -rf /var/lib/apt/lists/*
+
+# ─── Directorio de trabajo ────────────────────────────────
+WORKDIR /var/www/html
+
+# ─── Copiar código fuente ─────────────────────────────────
+COPY . .
+
+# ─── Instalar dependencias PHP (sin dev) ──────────────────
+RUN composer install \
+        --optimize-autoloader \
+        --no-dev \
+        --no-interaction \
+        --prefer-dist
+
+# ─── Instalar dependencias JS y compilar assets ───────────
+RUN pnpm install --frozen-lockfile \
+    && pnpm run build
+
+# ─── Permisos del storage ─────────────────────────────────
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
+
+# ─── Supervisord (workers de queue) ───────────────────────
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# ─── Script de arranque ───────────────────────────────────
+COPY docker/scripts/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+EXPOSE 80
+
+CMD ["/usr/local/bin/start.sh"]
