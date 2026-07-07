@@ -66,7 +66,7 @@ class CollarService
 
     public function actualizar(Collar $collar, UpdateCollarDTO $dto): Collar
     {
-        if ($dto->animal_id !== null && $dto->animal_id !== $collar->animal_id) {
+        if ($dto->animal_id !== null && $dto->animal_id != $collar->animal_id) {
             $this->validarAnimalDisponible($dto->animal_id);
         }
 

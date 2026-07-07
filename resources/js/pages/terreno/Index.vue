@@ -5,7 +5,6 @@ import { ref } from 'vue';
 import ConfirmDialog from '@/components/shared/ConfirmDialog.vue';
 import DataTable from '@/components/shared/DataTable.vue';
 import type { DataTableColumn } from '@/components/shared/DataTable.vue';
-import FormModal from '@/components/shared/FormModal.vue';
 import { Button } from '@/components/ui/button';
 import type { Animal } from '@/types/models/animal';
 import type { Granja } from '@/types/models/granja';
@@ -68,33 +67,10 @@ function eliminar(): void {
     });
 }
 
-// Ver animales: se pide la prop `animalesTerreno` de forma parcial (Inertia
-// `only`) sin navegar de página, reutilizando la misma vista terreno/Index.
-// Ver GranjaController::configuracion() para el mismo patrón.
-const animalesOpen = ref(false);
-const terrenoConsultado = ref<Terreno | null>(null);
-
-function abrirAnimales(terreno: Terreno): void {
-    terrenoConsultado.value = terreno;
-
-    router.get(
-        `/terrenos/${terreno.id}/animales`,
-        {},
-        {
-            only: ['animalesTerreno'],
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                animalesOpen.value = true;
-            },
-        },
-    );
+function abrirVer(terreno: Terreno): void {
+    router.visit(`/terrenos/${terreno.id}`);
 }
 
-function cerrarAnimales(): void {
-    animalesOpen.value = false;
-    terrenoConsultado.value = null;
-}
 </script>
 
 <template>
@@ -118,9 +94,9 @@ function cerrarAnimales(): void {
                     <Button
                         size="sm"
                         variant="outline"
-                        @click="abrirAnimales(row)"
+                        @click="abrirVer(row)"
                     >
-                        Ver animales
+                        Ver detalles
                     </Button>
                     <Button
                         size="sm"
@@ -145,43 +121,5 @@ function cerrarAnimales(): void {
             description="Esta acción eliminará el terreno de forma lógica."
             @confirm="eliminar"
         />
-
-        <FormModal
-            v-model:open="animalesOpen"
-            :title="`Animales en ${terrenoConsultado?.nombre ?? ''}`"
-            description="Animales que tienen este terreno asignado (un mismo animal puede estar en varios terrenos, como su potrero y su establo)."
-        >
-            <div
-                v-if="
-                    !props.animalesTerreno || props.animalesTerreno.length === 0
-                "
-                class="text-sm text-muted-foreground"
-            >
-                Este terreno no tiene animales asignados todavía.
-            </div>
-            <ul v-else class="space-y-2">
-                <li
-                    v-for="animal in props.animalesTerreno"
-                    :key="animal.id"
-                    class="flex items-center justify-between rounded-md border p-3 text-sm"
-                >
-                    <span>
-                        <span class="font-medium">{{ animal.codigo }}</span>
-                        — {{ animal.nombre }}
-                        <span v-if="animal.tipo" class="text-muted-foreground"
-                            >({{ animal.tipo }})</span
-                        >
-                    </span>
-                    <span class="text-muted-foreground">
-                        {{ animal.collar?.serie ?? 'Sin collar' }}
-                    </span>
-                </li>
-            </ul>
-            <div class="flex justify-end pt-2">
-                <Button variant="outline" @click="cerrarAnimales"
-                    >Cerrar</Button
-                >
-            </div>
-        </FormModal>
     </div>
 </template>

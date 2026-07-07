@@ -83,12 +83,12 @@ const showAvatar = computed(
         class="safe-bottom fixed right-0 bottom-5 left-0 z-50 flex justify-center px-4 md:hidden"
     >
         <div
-            class="flex h-16 w-full max-w-md items-center justify-around rounded-full border border-border/40 bg-background/80 px-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-lg dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]"
+            class="flex h-[76px] w-full max-w-md items-center justify-around rounded-full border border-border/40 bg-background/80 px-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-lg dark:border-white/10 dark:bg-zinc-950/80 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]"
         >
             <template v-for="item in navItems" :key="item.title">
                 <Link
                     :href="item.href"
-                    class="relative flex h-12 w-12 flex-col items-center justify-center rounded-full transition-all duration-300"
+                    class="relative flex h-14 w-14 flex-col items-center justify-center rounded-full transition-all duration-300"
                     :class="
                         isCurrentUrl(item.href)
                             ? 'scale-105 font-semibold text-primary'
@@ -102,22 +102,22 @@ const showAvatar = computed(
                     />
                     <component
                         :is="item.icon"
-                        class="h-5 w-5 transition-transform duration-300"
+                        class="h-6 w-6 transition-transform duration-300"
                         :class="isCurrentUrl(item.href) ? 'scale-110' : ''"
                     />
                     <span
-                        class="mt-0.5 text-[9px] leading-none tracking-tight"
+                        class="mt-0.5 text-[10px] leading-none tracking-tight"
                         >{{ item.title }}</span
                     >
                 </Link>
             </template>
 
             <!-- Profile/Menu Dropdown -->
-            <div class="flex h-12 w-12 items-center justify-center">
+            <div class="flex h-14 w-14 items-center justify-center">
                 <DropdownMenu @update:open="(val) => (isMenuOpen = val)">
                     <DropdownMenuTrigger as-child>
                         <button
-                            class="relative flex h-12 w-12 flex-col items-center justify-center rounded-full text-muted-foreground transition-all duration-300 hover:scale-105 hover:text-foreground focus:outline-none"
+                            class="relative flex h-14 w-14 flex-col items-center justify-center rounded-full text-muted-foreground transition-all duration-300 hover:scale-105 hover:text-foreground focus:outline-none"
                             :class="isMenuOpen ? 'text-primary' : ''"
                         >
                             <!-- Active menu background pill -->
@@ -144,7 +144,7 @@ const showAvatar = computed(
                                     {{ getInitials(user.name) }}
                                 </AvatarFallback>
                             </Avatar>
-                            <span class="mt-0.5 text-[9px] leading-none"
+                            <span class="mt-0.5 text-[10px] leading-none"
                                 >Menú</span
                             >
                         </button>

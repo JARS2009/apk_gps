@@ -47,6 +47,24 @@ class TerrenoController extends Controller
         ]);
     }
 
+    public function show(Request $request, Terreno $terreno): Response
+    {
+        $this->authorize('view', $terreno);
+
+        $terreno->load('granja');
+        
+        $animales = $terreno->granja->animales()
+            ->with(['collar.ubicaciones' => function ($q) {
+                $q->latest('recibido_en')->take(1);
+            }])
+            ->get();
+
+        return Inertia::render('terreno/Show', [
+            'terreno' => $terreno,
+            'animales' => $animales,
+        ]);
+    }
+
     public function create(Request $request): Response
     {
         $this->authorize('create', Terreno::class);

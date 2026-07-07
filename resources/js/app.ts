@@ -31,3 +31,21 @@ initializeTheme();
 
 // This will listen for flash toast data from the server...
 initializeFlashToast();
+
+// Register PWA Service Worker (production only)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    import('virtual:pwa-register').then(({ registerSW }) => {
+        registerSW({
+            onNeedRefresh() {
+                // New version available – auto-update silently
+                window.dispatchEvent(new CustomEvent('pwa-update-available'));
+            },
+            onOfflineReady() {
+                console.log('[PWA] App ready to work offline');
+            },
+        });
+    }).catch(() => {
+        // Fallback: register manually
+        navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    });
+}

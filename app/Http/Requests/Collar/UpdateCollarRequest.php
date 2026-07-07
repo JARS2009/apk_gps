@@ -17,7 +17,7 @@ class UpdateCollarRequest extends FormRequest
     /** @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        $collar = $this->route('collare');
+        $collar = $this->route('collar');
 
         return [
             'serie' => ['required', 'string', 'max:100', Rule::unique('collars', 'serie')->ignore($collar)],

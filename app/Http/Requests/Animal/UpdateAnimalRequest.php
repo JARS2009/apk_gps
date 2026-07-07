@@ -16,9 +16,8 @@ class UpdateAnimalRequest extends FormRequest
     /** @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        // La ruta resource 'animales' genera el segmento {animale}.
         /** @var \App\Models\Animal $animal */
-        $animal = $this->route('animale');
+        $animal = $this->route('animal');
 
         return [
             'granja_id' => ['required', 'integer', 'exists:farms,id'],

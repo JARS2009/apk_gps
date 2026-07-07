@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import TerrenoForm from '@/components/terreno/TerrenoForm.vue';
 import type { Granja } from '@/types/models/granja';
 
@@ -38,23 +31,10 @@ defineOptions({
             </p>
         </div>
 
-        <Card
-            class="border-sidebar-border/70 shadow-sm dark:border-sidebar-border"
-        >
-            <CardHeader class="pb-4">
-                <CardTitle class="text-xl">Datos del Terreno</CardTitle>
-                <CardDescription>
-                    Completa la información básica y traza los límites del
-                    terreno.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <TerrenoForm
-                    :granjas="props.granjas"
-                    action="/terrenos"
-                    method="post"
-                />
-            </CardContent>
-        </Card>
+        <TerrenoForm
+            :granjas="props.granjas"
+            action="/terrenos"
+            method="post"
+        />
     </div>
 </template>

@@ -19,6 +19,7 @@ const modo = ref<Modo>('idle');
 
 let map: maplibregl.Map | null = null;
 let vertices: [number, number][] = []; // [lng, lat]
+const verticeCount = ref(0);
 
 // ── Área (Shoelace esférica) ───────────────────────────────────────────────
 function calcularArea(verts: [number, number][]): number {
@@ -75,6 +76,7 @@ function refreshSources(): void {
     if (!map?.getSource('polygon')) {
         return;
     }
+    verticeCount.value = vertices.length;
 
     (map.getSource('polygon') as maplibregl.GeoJSONSource).setData(
         vertices.length >= 2
@@ -258,7 +260,7 @@ onMounted(() => {
         container: mapEl.value!,
         style: {
             version: 8,
-            glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+            glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
             sources: {
                 'base-tiles': {
                     type: 'raster',
@@ -449,10 +451,19 @@ onUnmounted(() => {
         </p>
 
         <!-- Mapa -->
-        <div
-            ref="mapEl"
-            class="h-[480px] w-full overflow-hidden rounded-md border border-input"
-        />
+        <div class="relative h-[480px] w-full overflow-hidden rounded-md border border-input">
+            <div ref="mapEl" class="h-full w-full" />
+
+            <!-- Botón flotante para cerrar polígono en mobile -->
+            <button
+                v-if="modo === 'dibujando' && verticeCount >= 3"
+                type="button"
+                class="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-green-600 px-6 py-3 text-sm font-semibold text-white shadow-xl active:scale-95"
+                @click="finalizarDibujo"
+            >
+                ✓ Cerrar terreno
+            </button>
+        </div>
 
         <p v-if="modelValue.length > 0" class="text-xs text-muted-foreground">
             {{ modelValue.length }} vértices definidos.

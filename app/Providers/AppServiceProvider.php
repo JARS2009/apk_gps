@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -23,7 +25,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureHttps();
         $this->configureDefaults();
+    }
+
+    /**
+     * Force HTTPS when running behind a reverse proxy (Nginx + SSL).
+     * Fixes Mixed Content errors when assets are served via HTTPS proxy.
+     */
+    protected function configureHttps(): void
+    {
+        // Confiar en todos los proxies (Nginx en el mismo servidor)
+        Request::setTrustedProxies(
+            ['127.0.0.1', '172.0.0.0/8', '10.0.0.0/8', 'REMOTE_ADDR'],
+            Request::HEADER_X_FORWARDED_FOR |
+            Request::HEADER_X_FORWARDED_HOST |
+            Request::HEADER_X_FORWARDED_PORT |
+            Request::HEADER_X_FORWARDED_PROTO |
+            Request::HEADER_X_FORWARDED_PREFIX
+        );
+
+        // Forzar HTTPS si el proxy indica que la conexión original fue HTTPS
+        if (request()->server('HTTP_X_FORWARDED_PROTO') === 'https' ||
+            config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 
     /**

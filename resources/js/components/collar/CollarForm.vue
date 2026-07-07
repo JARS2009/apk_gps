@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -44,49 +44,60 @@ const opcionesAnimales = computed<Animal[]>(() => {
     return lista;
 });
 
+const form = useForm<{
+    serie: string;
+    modelo: string;
+    animal_id: number | null;
+    estado: string;
+}>({
+    serie: props.collar?.serie ?? '',
+    modelo: props.collar?.modelo ?? '',
+    animal_id: props.collar?.animal_id ?? null,
+    estado: props.collar?.estado ?? 'disponible',
+});
+
 const animalId = ref<string>(
     props.collar?.animal_id ? String(props.collar.animal_id) : SIN_ASIGNAR,
 );
-const animalIdValue = computed(() =>
-    animalId.value === SIN_ASIGNAR ? '' : animalId.value,
-);
 
 const estado = ref<string>(props.collar?.estado ?? 'disponible');
+
+function submit(): void {
+    form.animal_id = animalId.value === SIN_ASIGNAR ? null : Number(animalId.value);
+    form.estado = animalId.value === SIN_ASIGNAR ? estado.value : 'asignado';
+
+    const method = props.method ?? 'post';
+
+    form.submit(method, props.action, {
+        onSuccess: () => emit('success'),
+    });
+}
 </script>
 
 <template>
-    <Form
-        :action="props.action"
-        :method="props.method ?? 'post'"
-        class="space-y-6"
-        v-slot="{ errors, processing }"
-        @success="emit('success')"
-    >
+    <form class="space-y-6" @submit.prevent="submit">
         <div class="grid gap-2">
             <Label for="serie">Serie</Label>
             <Input
                 id="serie"
-                name="serie"
-                :default-value="collar?.serie"
+                v-model="form.serie"
                 required
             />
-            <InputError :message="errors.serie" />
+            <InputError :message="form.errors.serie" />
         </div>
 
         <div class="grid gap-2">
             <Label for="modelo">Modelo</Label>
             <Input
                 id="modelo"
-                name="modelo"
-                :default-value="collar?.modelo"
+                v-model="form.modelo"
                 required
             />
-            <InputError :message="errors.modelo" />
+            <InputError :message="form.errors.modelo" />
         </div>
 
         <div class="grid gap-2">
             <Label for="animal_id">Animal asignado</Label>
-            <input type="hidden" name="animal_id" :value="animalIdValue" />
             <Select v-model="animalId">
                 <SelectTrigger id="animal_id" class="w-full">
                     <SelectValue placeholder="Selecciona un animal" />
@@ -102,12 +113,11 @@ const estado = ref<string>(props.collar?.estado ?? 'disponible');
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <InputError :message="errors.animal_id" />
+            <InputError :message="form.errors.animal_id" />
         </div>
 
         <div v-if="animalId === SIN_ASIGNAR" class="grid gap-2">
             <Label for="estado">Estado</Label>
-            <input type="hidden" name="estado" :value="estado" />
             <Select v-model="estado">
                 <SelectTrigger id="estado" class="w-full">
                     <SelectValue placeholder="Selecciona un estado" />
@@ -117,12 +127,11 @@ const estado = ref<string>(props.collar?.estado ?? 'disponible');
                     <SelectItem value="inactivo">Inactivo</SelectItem>
                 </SelectContent>
             </Select>
-            <InputError :message="errors.estado" />
+            <InputError :message="form.errors.estado" />
         </div>
-        <input v-else type="hidden" name="estado" value="asignado" />
 
         <div class="flex items-center gap-4">
-            <Button type="submit" :disabled="processing">Guardar</Button>
+            <Button type="submit" :disabled="form.processing">Guardar</Button>
         </div>
-    </Form>
+    </form>
 </template>

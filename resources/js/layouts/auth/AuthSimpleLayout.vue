@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 
-import ShapeHeroBackground from '@/components/ShapeHeroBackground.vue';
-
 defineProps<{
     title?: string;
     description?: string;
@@ -11,16 +9,11 @@ defineProps<{
 
 <template>
     <div
-        class="relative flex min-h-svh flex-col items-center justify-center p-6 md:p-10"
+        class="flex min-h-svh flex-col items-center justify-center bg-white p-6 md:p-10 dark:bg-gray-950"
     >
-        <!-- Background animado interactivo -->
-        <ShapeHeroBackground />
-
-        <!-- Tarjeta "Glassmorphism" con el contenido del Auth -->
-        <div class="relative z-20 w-full max-w-sm">
-            <div
-                class="flex flex-col gap-6 rounded-3xl bg-white/60 p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.2)] ring-1 ring-white/50 backdrop-blur-2xl transition-all dark:bg-black/40 dark:ring-white/10"
-            >
+        <!-- Tarjeta con el contenido del Auth -->
+        <div class="w-full max-w-sm">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-8 shadow-md ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
                 <div class="flex flex-col items-center gap-4">
                     <Link
                         href="/"

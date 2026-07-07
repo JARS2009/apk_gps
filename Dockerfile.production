@@ -4,7 +4,7 @@
 # compilar assets y generar la APK en el VPS
 # ============================================================
 
-FROM php:8.3-apache AS base
+FROM php:8.4-apache AS base
 
 LABEL maintainer="Agro-Rastreo <noreply@agrorastreo.com>"
 

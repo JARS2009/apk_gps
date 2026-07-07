@@ -5,6 +5,7 @@ import {
     MapPin,
     PawPrint,
     Radio,
+    ShoppingCart,
     Tractor,
     Users,
 } from '@lucide/vue';
@@ -69,6 +70,11 @@ const mainNavItems = computed<NavItem[]>(() => [
                   href: '/collares',
                   icon: Radio,
               },
+              {
+                  title: 'Compras',
+                  href: '/compras',
+                  icon: ShoppingCart,
+              },
           ]),
     ...(isSuperAdmin.value
         ? [
@@ -107,5 +113,4 @@ const footerNavItems: NavItem[] = [];
             <NavUser />
         </SidebarFooter>
     </Sidebar>
-    <slot />
 </template>
