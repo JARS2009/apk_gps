@@ -45,6 +45,14 @@ Route::inertia('sin-acceso', 'SinAcceso')
     ->name('sin-acceso')
     ->middleware(['auth']);
 
+// ─── GPS Prueba (sin auth, para recibir datos del SinoTrack) ───
+Route::prefix('api/gps-prueba')->group(function () {
+    Route::get('ubicaciones', [\App\Http\Controllers\GpsPrueba\GpsPruebaController::class, 'index'])
+        ->name('api.gps-prueba.ubicaciones');
+    Route::get('ultima/{imei}', [\App\Http\Controllers\GpsPrueba\GpsPruebaController::class, 'ultima'])
+        ->name('api.gps-prueba.ultima');
+});
+
 Route::middleware(['auth', 'verified', 'granja.acceso'])->group(function () {
     // Dashboard con mapa y alertas
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
