@@ -52,7 +52,7 @@ class NativeAppServiceProvider extends ServiceProvider
     {
         try {
             // Siempre corre el seeder — usa firstOrCreate internamente, no duplica datos
-            if (Schema::hasTable('users')) {
+            if (Schema::hasTable('users') && \Illuminate\Support\Facades\DB::table('users')->count() === 0) {
                 Artisan::call('db:seed', [
                     '--class' => DatabaseSeeder::class,
                     '--force' => true,

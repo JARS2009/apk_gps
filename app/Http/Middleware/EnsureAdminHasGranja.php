@@ -15,12 +15,14 @@ class EnsureAdminHasGranja
     {
         $user = $request->user();
 
-        if ($user && ! $user->isSuperAdmin() && $user->granjas()->count() === 0) {
-            if ($request->routeIs('sin-acceso')) {
-                return $next($request);
-            }
+        if ($user && ! $user->isSuperAdmin()) {
+            // Cache the count on the request so HandleInertiaRequests can reuse it
+            $count = $user->granjas()->count();
+            $request->attributes->set('_granjas_count', $count);
 
-            return redirect()->route('sin-acceso');
+            if ($count === 0 && ! $request->routeIs('sin-acceso')) {
+                return redirect()->route('sin-acceso');
+            }
         }
 
         return $next($request);

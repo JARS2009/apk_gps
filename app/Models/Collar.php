@@ -59,4 +59,14 @@ class Collar extends Model
     {
         return $this->hasMany(UbicacionCollar::class, 'collar_id');
     }
+
+    /**
+     * Última ubicación registrada (optimizada para eager loading).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<UbicacionCollar, $this>
+     */
+    public function ultimaUbicacion(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UbicacionCollar::class, 'collar_id')->latestOfMany('recibido_en');
+    }
 }

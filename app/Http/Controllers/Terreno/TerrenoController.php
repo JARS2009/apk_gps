@@ -54,9 +54,7 @@ class TerrenoController extends Controller
         $terreno->load('granja');
         
         $animales = $terreno->granja->animales()
-            ->with(['collar.ubicaciones' => function ($q) {
-                $q->latest('recibido_en')->take(1);
-            }])
+            ->with('collar.ultimaUbicacion')
             ->get();
 
         return Inertia::render('terreno/Show', [

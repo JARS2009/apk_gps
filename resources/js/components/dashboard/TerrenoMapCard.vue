@@ -31,8 +31,13 @@ interface AnimalConUbicacion {
         modelo: string;
         estado: string;
         ubicaciones?: UbicacionCollar[];
+        ultima_ubicacion?: UbicacionCollar | null;
     } | null;
     [key: string]: any;
+}
+
+function getUbicacion(animal: AnimalConUbicacion): UbicacionCollar | undefined {
+    return animal.collar?.ultima_ubicacion ?? animal.collar?.ubicaciones?.[0];
 }
 
 const props = withDefaults(defineProps<{
@@ -66,8 +71,8 @@ function puntoEnPoligono(lat: number, lng: number, coords: Coordenada[]): boolea
     if (coords.length < 3) return false;
     let inside = false;
     for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-        const yi = coords[i].lat, xi = coords[i].lng;
-        const yj = coords[j].lat, xj = coords[j].lng;
+        const yi = Number(coords[i].lat), xi = Number(coords[i].lng);
+        const yj = Number(coords[j].lat), xj = Number(coords[j].lng);
         if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
             inside = !inside;
         }
@@ -88,7 +93,7 @@ function tiempoRelativo(fecha: string): string {
 // Animales cuya última ubicación está dentro de este terreno
 function animalesEnTerreno(): AnimalConUbicacion[] {
     return props.animales.filter((a) => {
-        const ub = a.collar?.ubicaciones?.[0];
+        const ub = getUbicacion(a);
         if (!ub) return false;
         return puntoEnPoligono(Number(ub.latitud), Number(ub.longitud), props.terreno.coordenadas || []);
     });
@@ -113,7 +118,7 @@ function animalesCercanos(): AnimalConUbicacion[] {
     minLng -= margen; maxLng += margen;
 
     return props.animales.filter((a) => {
-        const ub = a.collar?.ubicaciones?.[0];
+        const ub = getUbicacion(a);
         if (!ub) return false;
         const lat = Number(ub.latitud);
         const lng = Number(ub.longitud);
@@ -133,9 +138,15 @@ function inicializarMapa() {
     let centerLat = -7.275875;
     if (coords.length > 0) {
         let sumLat = 0, sumLng = 0;
-        for (const c of coords) { sumLat += c.lat; sumLng += c.lng; }
+        for (const c of coords) { sumLat += Number(c.lat); sumLng += Number(c.lng); }
         centerLat = sumLat / coords.length;
         centerLng = sumLng / coords.length;
+    }
+
+    // Guard against NaN coordinates
+    if (isNaN(centerLat) || isNaN(centerLng)) {
+        centerLat = -7.275875;
+        centerLng = -78.2595745;
     }
 
     map = new maplibregl.Map({
@@ -182,7 +193,7 @@ function dibujarTerreno() {
     const coords = props.terreno.coordenadas || [];
     if (coords.length < 3) return;
 
-    const ring = coords.map((c) => [c.lng, c.lat] as [number, number]);
+    const ring = coords.map((c) => [Number(c.lng), Number(c.lat)] as [number, number]);
     ring.push(ring[0]);
 
     const sourceId = `terreno-${props.terreno.id}`;
@@ -238,7 +249,7 @@ function dibujarMarcadores() {
     const todos = [...dentro, ...cercanos];
 
     for (const animal of todos) {
-        const ub = animal.collar?.ubicaciones?.[0];
+        const ub = getUbicacion(animal);
         if (!ub) continue;
 
         const estaDentro = dentro.includes(animal);
@@ -290,7 +301,7 @@ function ajustarVista() {
     let hasPoints = false;
 
     for (const c of props.terreno.coordenadas || []) {
-        bounds.extend([c.lng, c.lat]);
+        bounds.extend([Number(c.lng), Number(c.lat)]);
         hasPoints = true;
     }
 
@@ -298,7 +309,7 @@ function ajustarVista() {
     const dentro = animalesEnTerreno();
     const cercanos = animalesCercanos();
     for (const a of [...dentro, ...cercanos]) {
-        const ub = a.collar?.ubicaciones?.[0];
+        const ub = getUbicacion(a);
         if (ub) {
             bounds.extend([Number(ub.longitud), Number(ub.latitud)]);
         }

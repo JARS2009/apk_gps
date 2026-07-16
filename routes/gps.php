@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\Animal\AnimalController;
 use App\Http\Controllers\Collar\CollarController;
-use App\Http\Controllers\Compra\CompraController;
 use App\Http\Controllers\Configuracion\ConfiguracionController;
 use App\Http\Controllers\Granja\GranjaController;
 use App\Http\Controllers\Terreno\TerrenoController;
+use App\Http\Controllers\Usuario\ContactoUsuarioController;
 use App\Http\Controllers\Usuario\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,8 +32,7 @@ Route::middleware(['auth', 'verified', 'granja.acceso'])->group(function () {
     Route::patch('collares/{collar}/asignar', [CollarController::class, 'asignar'])->name('collares.asignar');
 
     Route::resource('usuarios', UserController::class)->except(['show', 'create', 'edit']);
+    Route::post('usuarios/{usuario}/contactos', [ContactoUsuarioController::class, 'store'])->name('usuarios.contactos.store');
+    Route::delete('usuarios/{usuario}/contactos/{contacto}', [ContactoUsuarioController::class, 'destroy'])->name('usuarios.contactos.destroy');
 
-    Route::resource('compras', CompraController::class)->except(['create', 'edit', 'show'])->parameters(['compras' => 'compra']);
-    Route::post('compras/{compra}/documentos', [CompraController::class, 'agregarDocumento'])->name('compras.documentos.store');
-    Route::delete('compras/{compra}/documentos/{documento}', [CompraController::class, 'eliminarDocumento'])->name('compras.documentos.destroy');
 });

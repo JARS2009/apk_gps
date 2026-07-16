@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
-import { ref } from 'vue';
+import { BookUser, Plus } from '@lucide/vue';
+import { ref, watch } from 'vue';
 import ConfirmDialog from '@/components/shared/ConfirmDialog.vue';
+import ContactosManager from '@/components/shared/ContactosManager.vue';
 import DataTable from '@/components/shared/DataTable.vue';
 import type { DataTableColumn } from '@/components/shared/DataTable.vue';
 import FormModal from '@/components/shared/FormModal.vue';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import UserForm from '@/components/usuario/UserForm.vue';
 import type { Granja } from '@/types/models/granja';
 import type { PaginatedResponse } from '@/types/models/pagination';
-import type { Usuario } from '@/types/models/user';
+import type { ContactoUsuario, Usuario } from '@/types/models/user';
 
 const props = defineProps<{
     usuarios: PaginatedResponse<Usuario>;
@@ -55,6 +56,33 @@ function cerrarFormulario(): void {
     editing.value = null;
 }
 
+// Contactos modal
+const contactosOpen = ref(false);
+const usuarioContactos = ref<Usuario | null>(null);
+
+function abrirContactos(usuario: Usuario): void {
+    usuarioContactos.value = usuario;
+    contactosOpen.value = true;
+}
+
+function cerrarContactos(): void {
+    contactosOpen.value = false;
+    usuarioContactos.value = null;
+}
+
+// Sincroniza el modal cuando Inertia recarga los props tras agregar/eliminar un contacto
+watch(
+    () => props.usuarios.data,
+    (nuevosUsuarios) => {
+        if (usuarioContactos.value) {
+            const actualizado = nuevosUsuarios.find((u) => u.id === usuarioContactos.value!.id);
+            if (actualizado) {
+                usuarioContactos.value = actualizado;
+            }
+        }
+    },
+);
+
 const confirmOpen = ref(false);
 const toDelete = ref<Usuario | null>(null);
 
@@ -98,6 +126,14 @@ function eliminar(): void {
                     <Button
                         size="sm"
                         variant="outline"
+                        @click="abrirContactos(row)"
+                    >
+                        <BookUser class="size-4" />
+                        Contactos
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
                         @click="abrirEditar(row)"
                     >
                         Editar
@@ -136,5 +172,20 @@ function eliminar(): void {
             description="Esta acción eliminará el usuario de forma lógica."
             @confirm="eliminar"
         />
+
+        <!-- Modal de contactos -->
+        <FormModal
+            v-model:open="contactosOpen"
+            :title="`Contactos de ${usuarioContactos?.name ?? ''}`"
+            description="Gestiona los correos y teléfonos de este usuario."
+            @update:open="(v) => { if (!v) cerrarContactos(); }"
+        >
+            <ContactosManager
+                v-if="usuarioContactos"
+                :contactos="(usuarioContactos.contactos as ContactoUsuario[]) ?? []"
+                :store-url="`/usuarios/${usuarioContactos.id}/contactos`"
+                :destroy-url="(id) => `/usuarios/${usuarioContactos!.id}/contactos/${id}`"
+            />
+        </FormModal>
     </div>
 </template>

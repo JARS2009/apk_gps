@@ -17,7 +17,7 @@ services:
     container_name: agrorastreo_app
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-80}:80"
+      - "${APP_PORT:-8008}:80"
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
@@ -53,7 +53,7 @@ services:
     container_name: agrorastreo_mysql
     restart: unless-stopped
     ports:
-      - "${FORWARD_DB_PORT:-3306}:3306"
+      - "${FORWARD_DB_PORT:-3309}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
       MYSQL_ROOT_HOST: "%"
@@ -89,14 +89,14 @@ services:
       timeout: 5s
 
   # ──────────────────────────────────────────
-  # phpMyAdmin — acceso en :5050
+  # phpMyAdmin — acceso en :8089
   # ──────────────────────────────────────────
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: agrorastreo_phpmyadmin
     restart: unless-stopped
     ports:
-      - "${FORWARD_PHPMYADMIN_PORT:-5050}:80"
+      - "${FORWARD_PHPMYADMIN_PORT:-8089}:80"
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306

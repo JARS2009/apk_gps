@@ -26,8 +26,10 @@ class CollarService
                 'animal',
                 fn ($animal) => $animal->whereIn('granja_id', $actor->granjas()->pluck('farms.id'))
             ))
-            ->when($request->search, fn ($q, $search) => $q->where('serie', 'like', "%{$search}%")
-                ->orWhere('modelo', 'like', "%{$search}%"))
+            ->when($request->search, fn ($q, $search) => $q->where(function ($sub) use ($search) {
+                $sub->where('serie', 'like', "%{$search}%")
+                    ->orWhere('modelo', 'like', "%{$search}%");
+            }))
             ->latest()
             ->paginate(15)
             ->withQueryString();

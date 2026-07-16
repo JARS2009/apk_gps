@@ -42,7 +42,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user,
-                'granjasCount' => $user ? $user->granjas()->count() : 0,
+                'granjasCount' => $user
+                    ? ($request->attributes->get('_granjas_count') ?? $user->granjas()->count())
+                    : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

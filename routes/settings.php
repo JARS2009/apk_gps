@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ContactoPerfilController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 /* @chisel-password-confirmation */
@@ -12,6 +13,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/contactos', [ContactoPerfilController::class, 'store'])->name('profile.contactos.store');
+    Route::delete('settings/contactos/{contacto}', [ContactoPerfilController::class, 'destroy'])->name('profile.contactos.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

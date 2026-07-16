@@ -5,7 +5,6 @@ import {
     MapPin,
     PawPrint,
     Radio,
-    ShoppingCart,
     Tractor,
     Users,
 } from '@lucide/vue';
@@ -69,11 +68,6 @@ const mainNavItems = computed<NavItem[]>(() => [
                   title: 'Collares',
                   href: '/collares',
                   icon: Radio,
-              },
-              {
-                  title: 'Compras',
-                  href: '/compras',
-                  icon: ShoppingCart,
               },
           ]),
     ...(isSuperAdmin.value

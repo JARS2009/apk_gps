@@ -8,6 +8,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import ContactosManager from '@/components/shared/ContactosManager.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ import { edit } from '@/routes/profile';
 /* @chisel-email-verification */
 import { send } from '@/routes/verification';
 /* @end-chisel-email-verification */
+import type { ContactoUsuario } from '@/types/models/user';
 
 defineOptions({
     layout: {
@@ -26,6 +28,10 @@ defineOptions({
         ],
     },
 });
+
+const props = defineProps<{
+    contactos: ContactoUsuario[];
+}>();
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -106,6 +112,20 @@ const user = computed(() => page.props.auth.user);
                 >
             </div>
         </Form>
+    </div>
+
+    <!-- Sección de contactos -->
+    <div class="flex flex-col space-y-6">
+        <Heading
+            variant="small"
+            title="Mis contactos"
+            description="Agrega correos electrónicos y teléfonos adicionales de contacto"
+        />
+        <ContactosManager
+            :contactos="props.contactos"
+            store-url="/settings/contactos"
+            :destroy-url="(id) => `/settings/contactos/${id}`"
+        />
     </div>
 
     <DeleteUser />

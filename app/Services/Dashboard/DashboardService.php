@@ -40,7 +40,7 @@ class DashboardService
             ->whereHas('collar')
             ->with([
                 'collar' => fn ($q) => $q->select(['id', 'animal_id', 'serie', 'modelo', 'estado']),
-                'collar.ubicaciones' => fn ($q) => $q->latest('recibido_en')->limit(1),
+                'collar.ultimaUbicacion',
                 'terrenos:id,nombre',
             ])
             ->select(['id', 'granja_id', 'nombre', 'codigo', 'tipo', 'raza'])
@@ -95,15 +95,22 @@ class DashboardService
             ->count();
     }
 
+    /** @var array<int, array<int>> */
+    private array $granjaIdsCache = [];
+
     /**
      * @return array<int>
      */
     private function granjaIds(User $user): array
     {
-        if ($user->isSuperAdmin()) {
-            return \App\Models\Granja::pluck('id')->toArray();
+        if (isset($this->granjaIdsCache[$user->id])) {
+            return $this->granjaIdsCache[$user->id];
         }
 
-        return $user->granjas()->pluck('farms.id')->toArray();
+        $ids = $user->isSuperAdmin()
+            ? \App\Models\Granja::pluck('id')->toArray()
+            : $user->granjas()->pluck('farms.id')->toArray();
+
+        return $this->granjaIdsCache[$user->id] = $ids;
     }
 }

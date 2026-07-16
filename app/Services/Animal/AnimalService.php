@@ -22,8 +22,10 @@ class AnimalService
         return Animal::query()
             ->with(['granja', 'collar', 'terrenos'])
             ->when(! $actor->isSuperAdmin(), fn ($q) => $q->whereIn('granja_id', $actor->granjas()->pluck('farms.id')))
-            ->when($request->search, fn ($q, $search) => $q->where('nombre', 'like', "%{$search}%")
-                ->orWhere('codigo', 'like', "%{$search}%"))
+            ->when($request->search, fn ($q, $search) => $q->where(function ($sub) use ($search) {
+                $sub->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('codigo', 'like', "%{$search}%");
+            }))
             ->latest()
             ->paginate(15)
             ->withQueryString();

@@ -9,8 +9,6 @@ import {
     Check,
     MapPin,
     Radio,
-    Play,
-    Square,
     RefreshCw,
 } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
@@ -20,13 +18,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import TerrenoMapCard from '@/components/dashboard/TerrenoMapCard.vue';
 import { dashboard } from '@/routes';
 import type { Terreno, Coordenada } from '@/types/models/terreno';
 import type { Animal } from '@/types/models/animal';
 import type { Alerta } from '@/types/models/alerta';
-import { useGpsTracking } from '@/composables/useGpsTracking';
 
 interface UbicacionCollar {
     id: number;
@@ -44,6 +40,7 @@ type AnimalConUbicacion = Omit<Animal, 'collar'> & {
         modelo: string;
         estado: string;
         ubicaciones?: UbicacionCollar[];
+        ultima_ubicacion?: UbicacionCollar | null;
     } | null;
 };
 
@@ -69,11 +66,6 @@ defineOptions({
 const alertasLocales = ref<Alerta[]>([...props.alertas]);
 const animalesLocales = ref<AnimalConUbicacion[]>([...props.animales]);
 const alertasNoLeidasCount = ref(props.alertasNoLeidas);
-const mostrarPanel = ref<'alertas' | 'tracking'>('alertas');
-const collarSeleccionado = ref<number | null>(null);
-const collaresDisponibles = ref<
-    { id: number; serie: string; animal?: { nombre: string; codigo: string } | null }[]
->([]);
 
 let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -94,9 +86,6 @@ async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promis
     return res.json();
 }
 
-// GPS Tracking
-const { state: trackingState, iniciar, detener, solicitarPermisoNotificaciones } = useGpsTracking(60000);
-
 // ── Capas de mapa ─────────────────────────────────────────────────────────
 type CapaId = 'satelite' | 'hibrido' | 'calles';
 const CAPAS_LABELS: Record<CapaId, string> = {
@@ -111,8 +100,8 @@ function puntoEnPoligono(lat: number, lng: number, coords: Coordenada[]): boolea
     if (coords.length < 3) return false;
     let inside = false;
     for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-        const yi = coords[i].lat, xi = coords[i].lng;
-        const yj = coords[j].lat, xj = coords[j].lng;
+        const yi = Number(coords[i].lat), xi = Number(coords[i].lng);
+        const yj = Number(coords[j].lat), xj = Number(coords[j].lng);
         if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
             inside = !inside;
         }
@@ -120,8 +109,12 @@ function puntoEnPoligono(lat: number, lng: number, coords: Coordenada[]): boolea
     return inside;
 }
 
+function getUbicacion(animal: AnimalConUbicacion): UbicacionCollar | undefined {
+    return animal.collar?.ultima_ubicacion ?? animal.collar?.ubicaciones?.[0];
+}
+
 function animalDentroDeTerreno(animal: AnimalConUbicacion): boolean {
-    const ub = animal.collar?.ubicaciones?.[0];
+    const ub = getUbicacion(animal);
     if (!ub) return true;
     for (const t of props.terrenos) {
         if (puntoEnPoligono(Number(ub.latitud), Number(ub.longitud), t.coordenadas || [])) {
@@ -149,7 +142,7 @@ const stats = computed(() => {
     let sinSenal = 0;
 
     for (const a of animalesLocales.value) {
-        const ub = a.collar?.ubicaciones?.[0];
+        const ub = getUbicacion(a);
         if (!ub) {
             sinSenal++;
             continue;
@@ -184,25 +177,8 @@ async function marcarTodasLeidas() {
     }
 }
 
-// ── Tracking GPS ──────────────────────────────────────────────────────────
-async function cargarCollares() {
-    try {
-        const data = await apiFetch('/api/tracking/collares');
-        collaresDisponibles.value = data;
-    } catch {
-        // silenciar
-    }
-}
-
-function iniciarTracking() {
-    if (!collarSeleccionado.value) return;
-    solicitarPermisoNotificaciones();
-    iniciar(collarSeleccionado.value);
-}
-
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 onMounted(() => {
-    cargarCollares();
     refreshInterval = setInterval(refrescarDatos, 60000);
 });
 
@@ -298,24 +274,10 @@ watch(
                 </button>
             </div>
 
-            <div class="flex items-center gap-2">
-                <!-- Indicador de tracking activo -->
-                <div
-                    v-if="trackingState.activo"
-                    class="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-1.5 text-xs text-white shadow"
-                >
-                    <span class="relative flex h-2 w-2">
-                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                        <span class="relative inline-flex h-2 w-2 rounded-full bg-white" />
-                    </span>
-                    GPS activo · {{ trackingState.ultimoEnvio || 'conectando...' }}
-                </div>
-
-                <Button variant="outline" size="sm" @click="refrescarDatos">
-                    <RefreshCw class="mr-1 h-3.5 w-3.5" />
-                    Actualizar
-                </Button>
-            </div>
+            <Button variant="outline" size="sm" @click="refrescarDatos">
+                <RefreshCw class="mr-1 h-3.5 w-3.5" />
+                Actualizar
+            </Button>
         </div>
 
         <!-- Mapas por terreno + Panel lateral -->
@@ -348,48 +310,10 @@ watch(
                 </div>
             </div>
 
-            <!-- Panel derecho: Alertas / Tracking -->
+            <!-- Panel derecho: Alertas -->
             <div class="flex w-full flex-col md:w-80">
-                <!-- Tabs -->
-                <div class="mb-2 flex gap-1 rounded-lg bg-muted p-1">
-                    <button
-                        class="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-                        :class="
-                            mostrarPanel === 'alertas'
-                                ? 'bg-background shadow'
-                                : 'hover:bg-background/50'
-                        "
-                        @click="mostrarPanel = 'alertas'"
-                    >
-                        <Bell class="mr-1 inline h-3.5 w-3.5" />
-                        Alertas
-                        <Badge
-                            v-if="alertasNoLeidasCount > 0"
-                            variant="destructive"
-                            class="ml-1 h-4 px-1 text-[10px]"
-                        >
-                            {{ alertasNoLeidasCount }}
-                        </Badge>
-                    </button>
-                    <button
-                        class="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-                        :class="
-                            mostrarPanel === 'tracking'
-                                ? 'bg-background shadow'
-                                : 'hover:bg-background/50'
-                        "
-                        @click="mostrarPanel = 'tracking'"
-                    >
-                        <MapPin class="mr-1 inline h-3.5 w-3.5" />
-                        GPS Collar
-                    </button>
-                </div>
-
                 <!-- Panel de Alertas -->
-                <Card
-                    v-if="mostrarPanel === 'alertas'"
-                    class="flex flex-1 flex-col overflow-hidden border-sidebar-border/70 dark:border-sidebar-border"
-                >
+                <Card class="flex flex-1 flex-col overflow-hidden border-sidebar-border/70 dark:border-sidebar-border">
                     <CardHeader class="flex-row items-center justify-between py-3">
                         <CardTitle class="text-sm">Alertas recientes</CardTitle>
                         <Button
@@ -444,101 +368,6 @@ watch(
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Panel de Tracking GPS -->
-                <Card
-                    v-if="mostrarPanel === 'tracking'"
-                    class="flex flex-1 flex-col border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <CardHeader class="py-3">
-                        <CardTitle class="text-sm">Emular Collar GPS</CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-4 p-3 pt-0">
-                        <p class="text-xs text-muted-foreground">
-                            Usa el GPS de tu celular para simular un collar.
-                            La ubicación se envía al servidor cada minuto.
-                        </p>
-
-                        <div v-if="!trackingState.activo">
-                            <label class="mb-1.5 block text-xs font-medium">
-                                Seleccionar collar
-                            </label>
-                            <select
-                                v-model="collarSeleccionado"
-                                class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            >
-                                <option :value="null" disabled>-- Elegir collar --</option>
-                                <option
-                                    v-for="c in collaresDisponibles"
-                                    :key="c.id"
-                                    :value="c.id"
-                                >
-                                    {{ c.serie }}
-                                    {{ c.animal ? `(${c.animal.nombre})` : '' }}
-                                </option>
-                            </select>
-
-                            <Button
-                                class="mt-3 w-full"
-                                size="sm"
-                                :disabled="!collarSeleccionado"
-                                @click="iniciarTracking"
-                            >
-                                <Play class="mr-1 h-3.5 w-3.5" />
-                                Iniciar tracking
-                            </Button>
-                        </div>
-
-                        <div v-else class="space-y-3">
-                            <div class="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900 dark:bg-green-950/30">
-                                <div class="flex items-center gap-2">
-                                    <span class="relative flex h-2.5 w-2.5">
-                                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                                        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-                                    </span>
-                                    <span class="text-xs font-medium text-green-700 dark:text-green-400">
-                                        Tracking activo
-                                    </span>
-                                </div>
-
-                                <div class="mt-2 space-y-1 text-[11px] text-muted-foreground">
-                                    <p>Lat: {{ trackingState.ultimaLat?.toFixed(6) || '...' }}</p>
-                                    <p>Lng: {{ trackingState.ultimaLng?.toFixed(6) || '...' }}</p>
-                                    <p>Último envío: {{ trackingState.ultimoEnvio || 'pendiente' }}</p>
-                                    <p v-if="trackingState.dentroDeTerreno !== null">
-                                        Estado:
-                                        <span
-                                            :class="
-                                                trackingState.dentroDeTerreno
-                                                    ? 'font-medium text-green-600'
-                                                    : 'font-medium text-red-600'
-                                            "
-                                        >
-                                            {{ trackingState.dentroDeTerreno ? 'Dentro del terreno' : 'FUERA DEL TERRENO' }}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                class="w-full"
-                                @click="detener"
-                            >
-                                <Square class="mr-1 h-3.5 w-3.5" />
-                                Detener tracking
-                            </Button>
-                        </div>
-
-                        <div
-                            v-if="trackingState.error"
-                            class="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400"
-                        >
-                            {{ trackingState.error }}
                         </div>
                     </CardContent>
                 </Card>

@@ -20,7 +20,7 @@ class UserService
     public function listarPaginado(Request $request, User $actor): LengthAwarePaginator
     {
         return User::query()
-            ->with('granjas')
+            ->with(['granjas', 'contactos'])
             ->when(! $actor->isSuperAdmin(), fn ($q) => $q->whereHas(
                 'granjas',
                 fn ($granjas) => $granjas->whereIn('farms.id', $actor->granjas()->pluck('farms.id'))
