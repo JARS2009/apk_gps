@@ -68,8 +68,16 @@ class CollarController extends Controller
 
         $collar->load(['animal.granja', 'animal.terrenos']);
 
+        // Obtener collares de la misma granja si es posible, o todos los que tienen IMEI
+        $collares = Collar::query()
+            ->whereNotNull('imei')
+            ->where('imei', '!=', '')
+            ->with('animal')
+            ->get(['id', 'serie', 'imei', 'animal_id']);
+
         return Inertia::render('collar/Ruta', [
             'collar' => $collar,
+            'collares' => $collares,
             'terrenos' => $collar->animal
                 ? \App\Models\Terreno::where('granja_id', $collar->animal->granja_id)
                     ->select(['id', 'nombre', 'coordenadas', 'area'])
@@ -95,9 +103,9 @@ class CollarController extends Controller
         $limit = min((int) $request->query('limit', 500), 2000);
 
         $query = UbicacionPrueba::where('imei', $collar->imei)
-            ->whereNotIn('evento', ['login', 'heartbeat'])
+            ->whereIn('evento', ['ubicacion'])
             ->where(function ($q) {
-                $q->where(fn ($sub) => $sub->whereRaw('ABS(latitud) > 0.001 OR ABS(longitud) > 0.001'));
+                $q->where('latitud', '!=', 0)->orWhere('longitud', '!=', 0);
             })
             ->orderBy('fecha_gps');
 

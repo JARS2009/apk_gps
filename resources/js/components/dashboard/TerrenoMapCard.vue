@@ -408,12 +408,13 @@ defineExpose({ refrescarMarcadores: dibujarMarcadores });
     height: 28px;
     border-radius: 50%;
     border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 12px currentColor;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    animation: marker-breathe 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
+    animation: marker-breathe 1.2s ease-in-out infinite;
 }
 
 .animal-pulse-ring {
@@ -426,22 +427,22 @@ defineExpose({ refrescarMarcadores: dibujarMarcadores });
     border-radius: 50%;
     border: 2px solid;
     opacity: 0;
-    animation: pulse-expand 2s ease-out infinite;
+    animation: pulse-expand 1.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
 .animal-pulse-ring-2 {
-    animation-delay: 1s;
+    animation-delay: 0.6s;
 }
 
 @keyframes pulse-expand {
     0% {
         width: 28px;
         height: 28px;
-        opacity: 0.6;
+        opacity: 0.8;
     }
     100% {
-        width: 56px;
-        height: 56px;
+        width: 60px;
+        height: 60px;
         opacity: 0;
     }
 }
@@ -449,9 +450,11 @@ defineExpose({ refrescarMarcadores: dibujarMarcadores });
 @keyframes marker-breathe {
     0%, 100% {
         transform: scale(1);
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
     }
     50% {
-        transform: scale(1.08);
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 12px currentColor);
     }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -24,6 +24,7 @@ interface UbicacionRuta {
 
 const props = defineProps<{
     collar: Collar;
+    collares: Collar[];
     terrenos: Terreno[];
 }>();
 
@@ -35,6 +36,13 @@ defineOptions({
         ],
     },
 });
+
+function cambiarCollar(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    if (select.value) {
+        router.visit(`/collares/${select.value}/ruta`);
+    }
+}
 
 // ── Estado ───────────────────────────────────────────────────────────────
 const ubicaciones = ref<UbicacionRuta[]>([]);
@@ -450,14 +458,24 @@ onUnmounted(() => {
                         Collares
                     </Button>
                 </Link>
-                <div>
-                    <h2 class="text-lg font-semibold leading-none">
-                        {{ collar.animal?.nombre || collar.serie }}
-                    </h2>
-                    <p class="text-xs text-muted-foreground">
-                        Collar {{ collar.serie }} · IMEI {{ collar.imei || '—' }}
-                    </p>
+
+                <!-- Selector de collar -->
+                <div class="flex items-center gap-2 border-l pl-3">
+                    <select
+                        :value="collar.id"
+                        @change="cambiarCollar"
+                        class="h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium shadow-sm transition-all hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                        <option
+                            v-for="col in collares"
+                            :key="col.id"
+                            :value="col.id"
+                        >
+                            {{ col.animal?.nombre || 'Collar' }} ({{ col.serie }})
+                        </option>
+                    </select>
                 </div>
+
                 <Badge v-if="autoRefresh" variant="outline" class="gap-1 text-[10px] text-green-600">
                     <span class="relative flex h-2 w-2">
                         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
@@ -579,12 +597,13 @@ onUnmounted(() => {
     border-radius: 50%;
     background: #ef4444;
     border: 2.5px solid white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 14px #ef4444;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    animation: marker-breathe 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
+    animation: marker-breathe 1.2s ease-in-out infinite;
 }
 
 .animal-pulse-ring {
@@ -595,24 +614,24 @@ onUnmounted(() => {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid #ef4444;
+    border: 2.5px solid #ef4444;
     opacity: 0;
-    animation: pulse-expand 2s ease-out infinite;
+    animation: pulse-expand 1.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
 .animal-pulse-ring-2 {
-    animation-delay: 1s;
+    animation-delay: 0.6s;
 }
 
 @keyframes pulse-expand {
     0% {
         width: 32px;
         height: 32px;
-        opacity: 0.6;
+        opacity: 0.8;
     }
     100% {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         opacity: 0;
     }
 }
@@ -620,11 +639,11 @@ onUnmounted(() => {
 @keyframes marker-breathe {
     0%, 100% {
         transform: scale(1);
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
     }
     50% {
-        transform: scale(1.08);
-        box-shadow: 0 2px 16px rgba(239, 68, 68, 0.5);
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 14px #ef4444);
     }
 }
 </style>
