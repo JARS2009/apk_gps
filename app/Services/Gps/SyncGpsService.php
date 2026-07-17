@@ -49,8 +49,8 @@ class SyncGpsService
             ->get();
 
         foreach ($pendientes as $registro) {
-            // Ignorar eventos que no son de ubicación real
-            if (! in_array($registro->evento, ['ubicacion'], true)) {
+            // Ignorar eventos que no contienen coordenadas (login, heartbeat)
+            if (in_array($registro->evento, ['login', 'heartbeat'], true)) {
                 $registro->update(['synced_at' => Carbon::now()]);
                 $ignorados++;
 

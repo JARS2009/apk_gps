@@ -39,7 +39,7 @@ class GpsPruebaController extends Controller
     public function ultima(string $imei): JsonResponse
     {
         $ubicacion = UbicacionPrueba::where('imei', $imei)
-            ->where('evento', 'ubicacion')
+            ->whereIn('evento', ['ubicacion', 'sin_fix', 'alarma'])
             ->orderByDesc('created_at')
             ->first();
 
