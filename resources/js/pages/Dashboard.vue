@@ -179,7 +179,7 @@ async function marcarTodasLeidas() {
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 onMounted(() => {
-    refreshInterval = setInterval(refrescarDatos, 60000);
+    refreshInterval = setInterval(refrescarDatos, 10000);
 });
 
 onUnmounted(() => {

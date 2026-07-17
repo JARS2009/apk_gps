@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { MapPin, Plus } from '@lucide/vue';
 import { ref } from 'vue';
 import CollarForm from '@/components/collar/CollarForm.vue';
 import ConfirmDialog from '@/components/shared/ConfirmDialog.vue';
@@ -102,6 +102,12 @@ function desasignar(collar: Collar): void {
             </template>
             <template #actions="{ row }">
                 <div class="flex justify-end gap-2">
+                    <Link v-if="row.imei" :href="`/collares/${row.id}/ruta`">
+                        <Button size="sm" variant="outline">
+                            <MapPin class="mr-1 size-3.5" />
+                            Ruta
+                        </Button>
+                    </Link>
                     <Button
                         size="sm"
                         variant="outline"

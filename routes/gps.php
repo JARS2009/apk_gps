@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified', 'granja.acceso'])->group(function () {
     Route::resource('terrenos', TerrenoController::class);
     Route::resource('animales', AnimalController::class)->except(['create', 'edit'])->parameters(['animales' => 'animal']);
     Route::resource('collares', CollarController::class)->except(['create', 'edit'])->parameters(['collares' => 'collar']);
+    Route::get('collares/{collar}/ruta', [CollarController::class, 'ruta'])->name('collares.ruta');
     Route::patch('collares/{collar}/asignar', [CollarController::class, 'asignar'])->name('collares.asignar');
 
     Route::resource('usuarios', UserController::class)->except(['show', 'create', 'edit']);

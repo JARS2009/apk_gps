@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Collar\StoreCollarRequest;
 use App\Http\Requests\Collar\UpdateCollarRequest;
 use App\Models\Collar;
+use App\Models\UbicacionPrueba;
 use App\Services\Collar\CollarService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -54,6 +56,66 @@ class CollarController extends Controller
         $this->collarService->eliminar($collar);
 
         return redirect()->route('collares.index')->with('success', 'Collar eliminado correctamente.');
+    }
+
+    /**
+     * Vista de ruta/recorrido de un collar.
+     * GET /collares/{collar}/ruta
+     */
+    public function ruta(Collar $collar): Response
+    {
+        $this->authorize('view', $collar);
+
+        $collar->load(['animal.granja', 'animal.terrenos']);
+
+        return Inertia::render('collar/Ruta', [
+            'collar' => $collar,
+            'terrenos' => $collar->animal
+                ? \App\Models\Terreno::where('granja_id', $collar->animal->granja_id)
+                    ->select(['id', 'nombre', 'coordenadas', 'area'])
+                    ->get()
+                : [],
+        ]);
+    }
+
+    /**
+     * API: ubicaciones del collar para dibujar la ruta.
+     * GET /api/collares/{collar}/ubicaciones
+     */
+    public function ubicaciones(Request $request, Collar $collar): JsonResponse
+    {
+        $this->authorize('view', $collar);
+
+        if (! $collar->imei) {
+            return response()->json(['ubicaciones' => [], 'total' => 0]);
+        }
+
+        $desde = $request->query('desde');
+        $hasta = $request->query('hasta');
+        $limit = min((int) $request->query('limit', 500), 2000);
+
+        $query = UbicacionPrueba::where('imei', $collar->imei)
+            ->whereNotIn('evento', ['login', 'heartbeat'])
+            ->where(function ($q) {
+                $q->where(fn ($sub) => $sub->whereRaw('ABS(latitud) > 0.001 OR ABS(longitud) > 0.001'));
+            })
+            ->orderBy('fecha_gps');
+
+        if ($desde) {
+            $query->where('fecha_gps', '>=', $desde);
+        }
+        if ($hasta) {
+            $query->where('fecha_gps', '<=', $hasta);
+        }
+
+        $ubicaciones = $query->limit($limit)
+            ->select(['id', 'latitud', 'longitud', 'velocidad', 'rumbo', 'evento', 'fecha_gps', 'created_at'])
+            ->get();
+
+        return response()->json([
+            'ubicaciones' => $ubicaciones,
+            'total' => $ubicaciones->count(),
+        ]);
     }
 
     public function asignar(Request $request, Collar $collar): RedirectResponse

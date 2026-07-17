@@ -170,7 +170,8 @@ function parse_hq(string $line, int $socket_id, array &$imeis, $socket): void
             $lat = nmea_to_decimal($latNmea, $latDir);
             $lon = nmea_to_decimal($lonNmea, $lonDir);
 
-            $evento = ($validity === 'A') ? 'ubicacion' : 'sin_fix';
+            // Si tiene coordenadas reales (no 0,0), forzar 'ubicacion' aunque venga marcado como V
+            $evento = ($validity === 'A' || (abs($lat) > 0.001 && abs($lon) > 0.001)) ? 'ubicacion' : 'sin_fix';
 
             guardar_ubicacion(
                 $imei,

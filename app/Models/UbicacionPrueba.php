@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\UbicacionPruebaObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -20,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
+#[ObservedBy(UbicacionPruebaObserver::class)]
 class UbicacionPrueba extends Model
 {
     protected $table = 'ubicacion_prueba';

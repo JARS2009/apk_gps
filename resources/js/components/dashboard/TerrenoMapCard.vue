@@ -254,16 +254,13 @@ function dibujarMarcadores() {
 
         const estaDentro = dentro.includes(animal);
 
+        const color = estaDentro ? '#22c55e' : '#ef4444';
         const el = document.createElement('div');
+        el.className = 'animal-marker-container';
         el.innerHTML = `
-            <div style="
-                display: flex; align-items: center; justify-content: center;
-                width: 28px; height: 28px; border-radius: 50%;
-                background: ${estaDentro ? '#22c55e' : '#ef4444'};
-                border: 2px solid white;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                cursor: pointer; font-size: 12px;
-            ">
+            <div class="animal-pulse-ring" style="border-color: ${color};"></div>
+            <div class="animal-pulse-ring animal-pulse-ring-2" style="border-color: ${color};"></div>
+            <div class="animal-marker-dot" style="background: ${color};">
                 ${estaDentro ? '🐄' : '⚠️'}
             </div>
         `;
@@ -387,9 +384,74 @@ defineExpose({ refrescarMarcadores: dibujarMarcadores });
     </Card>
 </template>
 
-<style scoped>
+<style>
 /* Ocultar atribución para los mini mapas */
-:deep(.maplibregl-ctrl-attrib) {
+.maplibregl-ctrl-attrib {
     display: none;
+}
+
+/* ── Marcador animal pulsante ──────────────────────────────────────────── */
+.animal-marker-container {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.animal-marker-dot {
+    position: relative;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    animation: marker-breathe 2s ease-in-out infinite;
+}
+
+.animal-pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid;
+    opacity: 0;
+    animation: pulse-expand 2s ease-out infinite;
+}
+
+.animal-pulse-ring-2 {
+    animation-delay: 1s;
+}
+
+@keyframes pulse-expand {
+    0% {
+        width: 28px;
+        height: 28px;
+        opacity: 0.6;
+    }
+    100% {
+        width: 56px;
+        height: 56px;
+        opacity: 0;
+    }
+}
+
+@keyframes marker-breathe {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.08);
+    }
 }
 </style>

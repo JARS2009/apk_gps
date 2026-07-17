@@ -63,6 +63,8 @@ Route::middleware(['auth', 'verified', 'granja.acceso'])->group(function () {
         Route::post('dashboard/alertas/leidas', [DashboardController::class, 'marcarLeidas'])->name('api.dashboard.alertas.leidas');
         Route::post('tracking/ubicacion', [TrackingController::class, 'registrarUbicacion'])->name('api.tracking.ubicacion');
         Route::get('tracking/collares', [TrackingController::class, 'collaresActivos'])->name('api.tracking.collares');
+        Route::get('collares/{collar}/ubicaciones', [\App\Http\Controllers\Collar\CollarController::class, 'ubicaciones'])->name('api.collares.ubicaciones');
+
     });
 });
 
