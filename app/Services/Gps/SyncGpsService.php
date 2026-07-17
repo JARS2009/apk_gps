@@ -77,11 +77,12 @@ class SyncGpsService
             // Registrar ubicación usando el TrackingService existente
             // (esto guarda en collar_locations Y verifica geofence/alertas)
             try {
+                $fechaMutable = $registro->fecha_gps ? \Illuminate\Support\Carbon::parse($registro->fecha_gps) : null;
                 $this->trackingService->registrarUbicacion(
                     $collar,
                     (float) $registro->latitud,
                     (float) $registro->longitud,
-                    $registro->fecha_gps,
+                    $fechaMutable,
                 );
 
                 $registro->update(['synced_at' => Carbon::now()]);

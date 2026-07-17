@@ -10,16 +10,13 @@ use Illuminate\Support\Facades\Log;
 
 class UbicacionPruebaObserver
 {
-    public function __construct(
-        private readonly TrackingService $trackingService,
-    ) {}
-
     /**
      * Cada vez que se crea un registro en ubicacion_prueba,
      * sincroniza automáticamente a collar_locations si hay un collar con ese IMEI.
      */
     public function created(UbicacionPrueba $ubicacion): void
     {
+        $trackingService = app(TrackingService::class);
         // Ignorar eventos sin coordenadas
         if (in_array($ubicacion->evento, ['login', 'heartbeat'], true)) {
             $ubicacion->updateQuietly(['synced_at' => Carbon::now()]);
@@ -47,11 +44,12 @@ class UbicacionPruebaObserver
         }
 
         try {
-            $this->trackingService->registrarUbicacion(
+            $fechaMutable = $ubicacion->fecha_gps ? \Illuminate\Support\Carbon::parse($ubicacion->fecha_gps) : null;
+            $trackingService->registrarUbicacion(
                 $collar,
                 (float) $ubicacion->latitud,
                 (float) $ubicacion->longitud,
-                $ubicacion->fecha_gps,
+                $fechaMutable,
             );
 
             $ubicacion->updateQuietly(['synced_at' => Carbon::now()]);
