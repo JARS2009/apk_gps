@@ -7,6 +7,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use App\Console\Commands\GpsListenCommand;
+use App\Console\Commands\SyncGpsCommand;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -17,7 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         GpsListenCommand::class,
+        SyncGpsCommand::class,
     ])
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('sync:gps')->everyMinute()->withoutOverlapping();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 

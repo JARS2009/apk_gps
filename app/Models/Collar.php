@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int|null $animal_id
+ * @property string|null $imei
  * @property string $serie
  * @property string $modelo
  * @property CollarEstado $estado
@@ -29,6 +30,7 @@ class Collar extends Model
 
     protected $fillable = [
         'animal_id',
+        'imei',
         'serie',
         'modelo',
         'estado',
@@ -68,5 +70,15 @@ class Collar extends Model
     public function ultimaUbicacion(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(UbicacionCollar::class, 'collar_id')->latestOfMany('recibido_en');
+    }
+
+    /**
+     * Registros GPS crudos del dispositivo físico vinculado por IMEI.
+     *
+     * @return HasMany<UbicacionPrueba, $this>
+     */
+    public function ubicacionesPrueba(): HasMany
+    {
+        return $this->hasMany(UbicacionPrueba::class, 'imei', 'imei');
     }
 }

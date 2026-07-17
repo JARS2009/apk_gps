@@ -39,7 +39,7 @@ class DashboardService
             ->whereIn('granja_id', $granjaIds)
             ->whereHas('collar')
             ->with([
-                'collar' => fn ($q) => $q->select(['id', 'animal_id', 'serie', 'modelo', 'estado']),
+                'collar' => fn ($q) => $q->select(['id', 'animal_id', 'imei', 'serie', 'modelo', 'estado']),
                 'collar.ultimaUbicacion',
                 'terrenos:id,nombre',
             ])

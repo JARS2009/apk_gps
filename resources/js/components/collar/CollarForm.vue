@@ -47,11 +47,13 @@ const opcionesAnimales = computed<Animal[]>(() => {
 const form = useForm<{
     serie: string;
     modelo: string;
+    imei: string;
     animal_id: number | null;
     estado: string;
 }>({
     serie: props.collar?.serie ?? '',
     modelo: props.collar?.modelo ?? '',
+    imei: props.collar?.imei ?? '',
     animal_id: props.collar?.animal_id ?? null,
     estado: props.collar?.estado ?? 'disponible',
 });
@@ -94,6 +96,20 @@ function submit(): void {
                 required
             />
             <InputError :message="form.errors.modelo" />
+        </div>
+
+        <div class="grid gap-2">
+            <Label for="imei">IMEI del dispositivo GPS</Label>
+            <Input
+                id="imei"
+                v-model="form.imei"
+                placeholder="Ej: 7026251528"
+                maxlength="20"
+            />
+            <p class="text-xs text-muted-foreground">
+                IMEI del rastreador SinoTrack vinculado a este collar.
+            </p>
+            <InputError :message="form.errors.imei" />
         </div>
 
         <div class="grid gap-2">

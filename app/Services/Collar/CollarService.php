@@ -28,7 +28,8 @@ class CollarService
             ))
             ->when($request->search, fn ($q, $search) => $q->where(function ($sub) use ($search) {
                 $sub->where('serie', 'like', "%{$search}%")
-                    ->orWhere('modelo', 'like', "%{$search}%");
+                    ->orWhere('modelo', 'like', "%{$search}%")
+                    ->orWhere('imei', 'like', "%{$search}%");
             }))
             ->latest()
             ->paginate(15)
@@ -61,6 +62,7 @@ class CollarService
         return Collar::create([
             'serie' => $dto->serie,
             'modelo' => $dto->modelo,
+            'imei' => $dto->imei,
             'animal_id' => $dto->animal_id,
             'estado' => $dto->animal_id !== null ? CollarEstado::Asignado : $dto->estado,
         ]);
@@ -75,6 +77,7 @@ class CollarService
         $collar->update([
             'serie' => $dto->serie,
             'modelo' => $dto->modelo,
+            'imei' => $dto->imei,
             'animal_id' => $dto->animal_id,
             'estado' => $dto->animal_id !== null ? CollarEstado::Asignado : $dto->estado,
         ]);

@@ -9,6 +9,7 @@ final readonly class UpdateCollarDTO
     public function __construct(
         public string $serie,
         public string $modelo,
+        public ?string $imei = null,
         public ?int $animal_id = null,
         public CollarEstado $estado = CollarEstado::Disponible,
     ) {}
@@ -19,6 +20,7 @@ final readonly class UpdateCollarDTO
         return new self(
             serie: $data['serie'],
             modelo: $data['modelo'],
+            imei: $data['imei'] ?? null,
             animal_id: $data['animal_id'] ?? null,
             estado: isset($data['estado'])
                 ? ($data['estado'] instanceof CollarEstado ? $data['estado'] : CollarEstado::from($data['estado']))

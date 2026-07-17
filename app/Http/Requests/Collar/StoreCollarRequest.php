@@ -19,6 +19,7 @@ class StoreCollarRequest extends FormRequest
         return [
             'serie' => ['required', 'string', 'max:100', 'unique:collars,serie'],
             'modelo' => ['required', 'string', 'max:100'],
+            'imei' => ['nullable', 'string', 'max:20', 'unique:collars,imei'],
             'animal_id' => ['nullable', 'integer', 'exists:animals,id'],
             'estado' => ['nullable', new Enum(\App\Enums\CollarEstado::class)],
         ];

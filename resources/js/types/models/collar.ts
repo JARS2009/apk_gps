@@ -5,6 +5,7 @@ export type CollarEstado = 'disponible' | 'asignado' | 'inactivo';
 export interface Collar {
     id: number;
     animal_id: number | null;
+    imei: string | null;
     serie: string;
     modelo: string;
     estado: CollarEstado;

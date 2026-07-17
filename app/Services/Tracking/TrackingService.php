@@ -17,14 +17,14 @@ class TrackingService
      *
      * @return array{ubicacion: UbicacionCollar, dentro: bool, alerta: Alerta|null}
      */
-    public function registrarUbicacion(Collar $collar, float $latitud, float $longitud): array
+    public function registrarUbicacion(Collar $collar, float $latitud, float $longitud, ?Carbon $recibidoEn = null): array
     {
         // Guardar ubicación
         $ubicacion = UbicacionCollar::create([
             'collar_id' => $collar->id,
             'latitud' => $latitud,
             'longitud' => $longitud,
-            'recibido_en' => Carbon::now(),
+            'recibido_en' => $recibidoEn ?? Carbon::now(),
         ]);
 
         // Obtener animal y sus terrenos asignados

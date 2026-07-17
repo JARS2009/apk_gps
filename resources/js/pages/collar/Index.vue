@@ -27,6 +27,11 @@ defineOptions({
 const columns: DataTableColumn<Collar>[] = [
     { key: 'serie', label: 'Serie' },
     { key: 'modelo', label: 'Modelo' },
+    {
+        key: 'imei',
+        label: 'IMEI',
+        render: (row) => row.imei || '—',
+    },
     { key: 'estado', label: 'Estado' },
     {
         key: 'animal',

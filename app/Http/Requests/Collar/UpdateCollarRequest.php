@@ -22,6 +22,7 @@ class UpdateCollarRequest extends FormRequest
         return [
             'serie' => ['required', 'string', 'max:100', Rule::unique('collars', 'serie')->ignore($collar)],
             'modelo' => ['required', 'string', 'max:100'],
+            'imei' => ['nullable', 'string', 'max:20', Rule::unique('collars', 'imei')->ignore($collar)],
             'animal_id' => ['nullable', 'integer', 'exists:animals,id'],
             'estado' => ['nullable', new Enum(\App\Enums\CollarEstado::class)],
         ];

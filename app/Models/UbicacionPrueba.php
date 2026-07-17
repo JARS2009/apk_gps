@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $evento
  * @property string|null $trama_raw
  * @property Carbon|null $fecha_gps
+ * @property Carbon|null $synced_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -33,6 +34,7 @@ class UbicacionPrueba extends Model
         'evento',
         'trama_raw',
         'fecha_gps',
+        'synced_at',
     ];
 
     /**
@@ -46,6 +48,7 @@ class UbicacionPrueba extends Model
             'velocidad' => 'decimal:2',
             'rumbo' => 'decimal:2',
             'fecha_gps' => 'datetime',
+            'synced_at' => 'datetime',
         ];
     }
 }
