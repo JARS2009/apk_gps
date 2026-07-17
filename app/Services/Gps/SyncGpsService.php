@@ -16,7 +16,7 @@ class SyncGpsService
 
     /**
      * Sincroniza registros pendientes de ubicacion_prueba a collar_locations.
-     * Solo procesa eventos de tipo "ubicacion" (ignora login, heartbeat, sin_fix).
+     * Ignora eventos login y heartbeat. Acepta ubicacion, sin_fix, alarma, etc.
      *
      * @return array{sincronizados: int, sin_collar: int, ignorados: int}
      */

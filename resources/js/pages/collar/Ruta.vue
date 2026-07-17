@@ -109,10 +109,6 @@ function formatFecha(fecha: string): string {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────
-function getCsrfToken(): string {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
 async function cargarUbicaciones(forzarRedibujado = false) {
     if (!props.collar.imei) return;
 
@@ -125,7 +121,6 @@ async function cargarUbicaciones(forzarRedibujado = false) {
         const res = await fetch(`/api/collares/${props.collar.id}/ubicaciones?${params}`, {
             headers: {
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken(),
             },
         });
         const data = await res.json();

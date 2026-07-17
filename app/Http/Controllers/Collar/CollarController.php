@@ -72,8 +72,8 @@ class CollarController extends Controller
         $collares = Collar::query()
             ->whereNotNull('imei')
             ->where('imei', '!=', '')
-            ->with('animal')
-            ->get(['id', 'serie', 'imei', 'animal_id']);
+            ->with('animal:id,nombre,codigo,granja_id')
+            ->get();
 
         return Inertia::render('collar/Ruta', [
             'collar' => $collar,
@@ -103,7 +103,7 @@ class CollarController extends Controller
         $limit = min((int) $request->query('limit', 500), 2000);
 
         $query = UbicacionPrueba::where('imei', $collar->imei)
-            ->whereIn('evento', ['ubicacion'])
+            ->whereNotIn('evento', ['login', 'heartbeat'])
             ->where(function ($q) {
                 $q->where('latitud', '!=', 0)->orWhere('longitud', '!=', 0);
             })
